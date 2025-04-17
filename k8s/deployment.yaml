@@ -13,12 +13,10 @@ spec:
     metadata:
       labels:
         app: bopeep-frontend
-      annotations:
-        redeployTimestamp: "{{ now }}"
     spec:
       containers:
         - name: bopeep-frontend
-          image: julianv08/bopeep-frontend:latest
+          image: julianv08/bopeep-frontend:$GITHUB_SHA
           imagePullPolicy: Always
           ports:
             - containerPort: 3000

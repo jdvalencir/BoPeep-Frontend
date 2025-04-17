@@ -48,9 +48,10 @@ jobs:
         tags: julianv08/${{ env.IMAGE_NAME }}:latest, julianv08/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
     # Deploy the Docker image to the GKE cluster
-    - name: Deploy
+    - name: Deploy with SHA
       run: |-
-        kubectl apply -f ./k8s/deployment.yaml
-        kubectl rollout restart deployment ${{ env.IMAGE_NAME }}
+        export GITHUB_SHA=${{ github.sha }}
+        envsubst < ./k8s/deployment.yaml | kubectl apply -f -
+        kubectl rollout status deployment ${{ env.IMAGE_NAME }}
         kubectl apply -f ./k8s/service.yaml
         kubectl get pods
