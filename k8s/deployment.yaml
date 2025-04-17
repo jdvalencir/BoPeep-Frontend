@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: bopeep-frontend
+      annotations:
+        redeployTimestamp: "{{ now }}"
     spec:
       containers:
         - name: bopeep-frontend
