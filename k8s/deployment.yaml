@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bopeep-frontend
+  labels:
+    app: bopeep-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bopeep-frontend
+  template:
+    metadata:
+      labels:
+        app: bopeep-frontend
+    spec:
+      containers:
+        - name: bopeep-frontend
+          image: julianv08/bopeep-frontend:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20

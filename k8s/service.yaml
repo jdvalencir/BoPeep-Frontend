@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bopeep-frontend-service
+  labels:
+    app: bopeep-frontend
+spec:
+  selector:
+    app: bopeep-frontend
+  ports:
+    - protocol: TCP
+      port: 80          # Externamente se expone como 80
+      targetPort: 3000  # Internamente redirige al puerto del container (Next.js)
