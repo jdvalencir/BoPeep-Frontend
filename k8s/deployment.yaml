@@ -17,6 +17,7 @@ spec:
       containers:
         - name: bopeep-frontend
           image: julianv08/bopeep-frontend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           resources:
