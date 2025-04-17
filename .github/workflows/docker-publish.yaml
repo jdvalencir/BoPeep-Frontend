@@ -51,5 +51,6 @@ jobs:
     - name: Deploy
       run: |-
         kubectl apply -f ./k8s/deployment.yaml
+        kubectl rollout restart deployment ${{ env.IMAGE_NAME }}
         kubectl apply -f ./k8s/service.yaml
         kubectl get pods
