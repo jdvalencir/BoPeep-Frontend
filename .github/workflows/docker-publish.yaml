@@ -9,7 +9,7 @@ env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: marcianos-cluster   # cluster name
   GKE_ZONE: southamerica-east1  # cluster zone
-  IMAGE_NAME: bopeep_frontend
+  IMAGE_NAME: bopeep-frontend
 
 jobs:
   setup-build-publish-deploy:
@@ -45,7 +45,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: julianv08/${{ env.IMAGE_NAME }}:latest, julianv08/${{ env.IMAGE_NAME }}:${{ needs.generate-version.outputs.new_tag }}
+        tags: julianv08/${{ env.IMAGE_NAME }}:latest, julianv08/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
