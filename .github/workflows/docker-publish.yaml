@@ -9,7 +9,7 @@ env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: marcianos-cluster   # cluster name
   GKE_ZONE: southamerica-east1  # cluster zone
-  IMAGE_NAME: bopeep-frontend
+  IMAGE_NAME: bopeep_frontend
 
 jobs:
   setup-build-publish-deploy:
