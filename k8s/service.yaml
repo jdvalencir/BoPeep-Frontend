@@ -8,6 +8,7 @@ metadata:
 spec:
   selector:
     app: bopeep-frontend
+    namespace: frontend-app
   ports:
     - port: 3000
       targetPort: 3000

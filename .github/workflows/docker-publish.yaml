@@ -10,6 +10,7 @@ env:
   GKE_CLUSTER: marcianos-cluster   # cluster name
   GKE_ZONE: us-central1  # cluster zone
   IMAGE_NAME: bopeep-frontend
+  NAMESPACE: frontend-app
 
 jobs:
   setup-build-publish-deploy:
@@ -50,7 +51,7 @@ jobs:
     # Deploy the Docker image to the GKE cluster
     - name: Deploy with SHA
       run: |-
-        kubectl get namespace frontend-app || kubectl create namespace frontend-app
+        kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
         export GITHUB_SHA=${{ github.sha }}
         envsubst < ./k8s/deployment.yaml | kubectl apply -f -
         kubectl rollout status deployment ${{ env.IMAGE_NAME }}
