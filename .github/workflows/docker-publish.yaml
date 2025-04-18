@@ -51,7 +51,6 @@ jobs:
     # Deploy the Docker image to the GKE cluster
     - name: Deploy with SHA
       run: |-
-        kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
         export GITHUB_SHA=${{ github.sha }}
         envsubst < ./k8s/deployment.yaml | kubectl apply -f -
         kubectl rollout status deployment ${{ env.IMAGE_NAME }}
