@@ -5,6 +5,7 @@ metadata:
   namespace: frontend-app
   labels:
     app: bopeep-frontend
+    namespace: frontend-app
 spec:
   selector:
     app: bopeep-frontend
