@@ -98,7 +98,7 @@ const LoginPage = () => {
                 type="button"
                 variant="outline"
                 className='bg-gray-800 text-white hover:bg-gray-600 flex-1'
-                onClick={() => router.push('/register')}
+                onClick={() => router.push('/auth/register')}
               >
                 Registrarse
               </Button>
