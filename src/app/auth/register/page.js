@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
+import { ArrowLeft } from "lucide-react";
 
 const formSchema = z
   .object({
@@ -125,6 +126,14 @@ const RegisterPage = () => {
 
   return (
     <div className="bg-gray-700 min-h-screen flex items-center justify-center">
+      <Button
+        type="button"
+        variant="ghost"
+        className="absolute top-4 left-4 p-0 hover:bg-gray-600"
+        onClick={() => router.push("/")}
+      >
+        <ArrowLeft className="text-white" />
+      </Button>
       <div className="w-full max-w-xl py-4">
         <Form {...form}>
           <form

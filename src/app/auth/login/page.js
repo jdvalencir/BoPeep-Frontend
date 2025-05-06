@@ -1,19 +1,30 @@
-'use client';
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogContent,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogTrigger
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
+import { ArrowLeft } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email("Email inválido").min(1, "Email es requerido"),
@@ -41,11 +52,12 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
-      
-      if (!response.ok) throw new Error(data.message || "Error al iniciar sesión");
+
+      if (!response.ok)
+        throw new Error(data.message || "Error al iniciar sesión");
       document.cookie = `accessToken=${data.accessToken};`;
       document.cookie = `refreshToken=${data.refreshToken};`;
-      router.push('/home/files')
+      router.push("/home/files");
       // console.log("Login exitoso:", data);
     } catch (error) {
       setApiError(error.message || "Error desconocido al iniciar sesión.");
@@ -55,15 +67,25 @@ const LoginPage = () => {
   };
 
   return (
-    <div className='bg-gray-700 min-h-screen flex items-center justify-center'>
+    <div className="bg-gray-700 min-h-screen flex items-center justify-center">
+      <Button
+        type="button"
+        variant="ghost"
+        className="absolute top-4 left-4 p-0 hover:bg-gray-600"
+        onClick={() => router.push("/")}
+      >
+        <ArrowLeft className="text-white" />
+      </Button>
       <div className="w-full max-w-md p-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="bg-gray-100 p-8 rounded-lg shadow-md space-y-6"
           >
-            <h1 className='text-black text-center text-2xl font-bold'>Iniciar Sesión</h1>
-            <hr className='my-4 border-gray-300' />
+            <h1 className="text-black text-center text-2xl font-bold">
+              Iniciar Sesión
+            </h1>
+            <hr className="my-4 border-gray-300" />
 
             {/** Campos */}
             {["email", "password"].map((fieldName) => (
@@ -79,7 +101,9 @@ const LoginPage = () => {
                     <FormControl>
                       <Input
                         type={fieldName === "password" ? "password" : "text"}
-                        placeholder={fieldName === "email" ? "tu@email.com" : "••••••"}
+                        placeholder={
+                          fieldName === "email" ? "tu@email.com" : "••••••"
+                        }
                         {...field}
                         className="bg-white text-black"
                       />
@@ -91,7 +115,7 @@ const LoginPage = () => {
             ))}
 
             {/** Botones */}
-            <div className='flex space-x-4'>
+            <div className="flex space-x-4">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
@@ -119,8 +143,8 @@ const LoginPage = () => {
               <Button
                 type="button"
                 variant="outline"
-                className='bg-gray-800 text-white hover:bg-gray-600 flex-1'
-                onClick={() => router.push('/auth/register')}
+                className="bg-gray-800 text-white hover:bg-gray-600 flex-1"
+                onClick={() => router.push("/auth/register")}
               >
                 Registrarse
               </Button>
@@ -131,7 +155,7 @@ const LoginPage = () => {
               <button
                 type="button"
                 className="text-blue-600 hover:text-blue-800 text-sm"
-                onClick={() => router.push('/forgot-password')}
+                onClick={() => router.push("/forgot-password")}
               >
                 ¿Olvidaste tu contraseña?
               </button>
