@@ -2,6 +2,7 @@
 import { Calendar, Home, Inbox, Search, Settings, Folder, Brain, LucideUsersRound} from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useSidebar } from "@/components/ui/sidebar"
+import Image from "next/image"
 
 import {
   Sidebar,
@@ -17,14 +18,9 @@ import {
 // Menu items.
 const items = [
   {
-    title: "Home",
-    url: "/",
-    icon: Home,
-  },
-  {
     title: "Mis Archivos",
-    url: "/home/files",
-    icon: Folder,
+    url: "/home",
+    icon: Home,
   },
   {
     title: "Transferir de Operador",
@@ -53,19 +49,19 @@ return (
     <Sidebar collapsible="icon">
         <SidebarContent>
             <SidebarGroup className={"pr-0"}>
-                <div style={{padding: '10px 20px'}}>
-                    <SidebarGroupLabel className={"text-center justify-content-center align-self-center"}> 
-                        <div className="text-sm text-center">
-                                Barra de Herramientas
-                        </div>
-                    </SidebarGroupLabel> 
-                </div>
-                    {state == "expanded" && <hr className='border-gray-300' />}
+            <div className="py-[0.6rem] border-b border-gray-300 flex items-center">
+                <SidebarGroupLabel className={"text-center w-full"}> 
+                    <div className="flex gap-x-2 text-sm items-center justify-center">
+                        <Image src="/logo/logo.png" alt="Logo" width={40} height={40} />
+                        {state === "expanded" && <h1 className="font-bold">Operador Marcianos</h1>}
+                    </div>
+                </SidebarGroupLabel> 
+            </div>
                 <SidebarGroupContent>
                     <SidebarMenu>
                         {items.map((item) => (
                             <div key={item.title}>
-                                <SidebarMenuItem key={item.title} className={"pt-1"}>
+                                <SidebarMenuItem key={item.title} className={"pt-1 pl-1"}>
                                     <SidebarMenuButton asChild className={"background-gray-100 hover:bg-gray-200 py-3 rounded-1"}>
                                         <a href={item.url}>
                                             <item.icon />

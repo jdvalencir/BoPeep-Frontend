@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft } from "lucide-react";
+import Cookies from "js-cookie";
 
 const formSchema = z.object({
   email: z.string().email("Email inválido").min(1, "Email es requerido"),
@@ -55,10 +56,17 @@ const LoginPage = () => {
 
       if (!response.ok)
         throw new Error(data.message || "Error al iniciar sesión");
-      document.cookie = `accessToken=${data.accessToken};`;
-      document.cookie = `refreshToken=${data.refreshToken};`;
-      router.push("/home/files");
-      // console.log("Login exitoso:", data);
+
+      Cookies.set("accessToken", data.accessToken, {
+        secure: true,
+        sameSite: "strict",
+        expires: 1 / 24,
+      });
+      Cookies.set("refreshToken", data.refreshToken, {
+        secure: true,
+        sameSite: "strict",
+      });
+      router.push("/home");
     } catch (error) {
       setApiError(error.message || "Error desconocido al iniciar sesión.");
     } finally {
@@ -120,7 +128,7 @@ const LoginPage = () => {
                 <AlertDialogTrigger asChild>
                   <Button
                     type="submit"
-                    className="bg-gray-800 hover:bg-gray-600 flex-1 max-w-xs"
+                    className="bg-gray-800 hover:bg-gray-600 flex-1 max-w-xs cursor-pointer"
                     disabled={loading}
                   >
                     {loading ? "Validando..." : "Iniciar Sesión"}
@@ -143,7 +151,7 @@ const LoginPage = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="bg-gray-800 text-white hover:bg-gray-600 flex-1"
+                className="bg-gray-800 text-white hover:bg-gray-300 flex-1 cursor-pointer"
                 onClick={() => router.push("/auth/register")}
               >
                 Registrarse

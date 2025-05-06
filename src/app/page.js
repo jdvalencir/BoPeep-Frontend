@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -20,18 +21,18 @@ const LandingPage = () => {
           archivos personales con seguridad extrema.
         </p>
         <div className="flex gap-4">
-          <button
+          <Button
             onClick={() => handleClick("auth/login")}
-            className="bg-white text-black px-6 py-3 rounded-lg hover:bg-gray-200 font-semibold"
+            className="bg-white text-black hover:bg-gray-200 cursor-pointer font-semibold"
           >
             Iniciar Sesión
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => handleClick("auth/register")}
-            className="border border-white px-6 py-3 rounded-lg hover:bg-white hover:text-black font-semibold"
+            className="border border-white  hover:bg-white cursor-pointer hover:text-black font-semibold"
           >
             Registrarse
-          </button>
+          </Button>
         </div>
       </section>
 
@@ -61,6 +62,8 @@ const LandingPage = () => {
           </div>
           <div className="flex-1">
             <Image
+              unoptimized
+              priority
               width={500}
               height={500}
               src="/images/alien-bttv.gif"
@@ -76,6 +79,8 @@ const LandingPage = () => {
         <div className="flex flex-col md:flex-row items-center">
           <div className="flex-1 hidden md:block">
             <Image
+              unoptimized
+              priority
               width={500}
               height={500}
               src="/images/profile.gif"

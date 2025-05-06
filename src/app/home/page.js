@@ -1,34 +1,68 @@
-'use client';
+"use client"
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { FileCard } from "@/components/personalized/file"
+import { Funnel } from "lucide-react";
 
-const LandingPage = () => {
-    const router = useRouter();
+export default function Page() {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    const handleClick = (Pagina) => {
-        router.push(`/${Pagina}`); // Redirige a la página de login
-    };
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh',  }}>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', backgroundColor: '#f0f0f0', padding: '20px', borderRadius: '8px' }}>
-                <button 
-                    type="submit" 
-                    onClick={() => handleClick('login')}
-                    style={{ backgroundColor: 'white', color: 'black', padding: '10px 20px', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                    Login
-                </button>
-                <button 
-                    type="button" 
-                    onClick={() => handleClick('register')} 
-                    style={{ backgroundColor: 'white', color: 'black', padding: '10px 20px', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                    Register
-                </button>
+        <div style={{ backgroundColor: '#f5f5f5', height: '100vh', padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', justifyContent: 'center' }}>
+                <div className="flex w-full max-w-sm items-center space-x-2">
+                    <div style={{ position: 'relative' }}>
+                        <Button onClick={() => setDropdownOpen(!dropdownOpen)}><Funnel /></Button>
+                        {dropdownOpen && (
+                            <div style={{ 
+                                position: 'absolute', 
+                                top: '0%', 
+                                right: '100%', 
+                                border: '1px solid #ccc', 
+                                borderRadius: '4px', 
+                                padding: '10px', 
+                                zIndex: 1000, 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(2, 1fr)', 
+                                gap: '10px', 
+                                width: '200px' 
+                            }} className='bg-gray-200'>
+                                <label style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} className='bg-white'>
+                                    <input type="checkbox" /> Filtro
+                                </label>
+                                <label style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} className='bg-white'>
+                                    <input type="checkbox" /> Filtro
+                                </label>
+                                <label style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} className='bg-white'>
+                                    <input type="checkbox" /> Filtro
+                                </label>
+                                <label style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} className='bg-white'>
+                                    <input type="checkbox" /> Filtro
+                                </label>
+                            </div>
+                        )}
+                    </div>
+                    <Input type="email" placeholder="Busqueda por palabras clave" />
+                    <Button type="submit">Buscar</Button>
+                </div>
             </div>
+            <hr className='border-2 mb-4'></hr>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(3, 1fr)', 
+                    gap: '20px', 
+                    justifyContent: 'center' 
+                }}>
+                    <FileCard iconColor='f14747' fileName="Archivo 1"/>
+                    <FileCard iconColor='48a8e4' fileName="Archivo 2"/>
+                    <FileCard iconColor='f2803d' fileName="Archivo 3"/>
+                </div>
+            </div>
+
+            
         </div>
     );
-};
-
-export default LandingPage;
+}
