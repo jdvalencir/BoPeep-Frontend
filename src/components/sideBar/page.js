@@ -1,5 +1,5 @@
 'use client'
-import { Calendar, Home, Inbox, Search, Settings, Folder, Brain} from "lucide-react"
+import { Calendar, Home, Inbox, Search, Settings, Folder, Brain, LucideUsersRound} from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useSidebar } from "@/components/ui/sidebar"
 
@@ -25,6 +25,11 @@ const items = [
     title: "Mis Archivos",
     url: "/files",
     icon: Folder,
+  },
+  {
+    title: "Transferir de Operador",
+    url: "/transfer",
+    icon: LucideUsersRound,
   },
   {
     title: "IA Chat",

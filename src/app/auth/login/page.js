@@ -171,8 +171,9 @@ const LoginPage = () => {
               </AlertDialog>
               <Button 
                 type="button"
-                className='bg-gray-800 hover:bg-gray-600 flex-1'
-                onClick={() => router.push('/register')}
+                variant="outline"
+                className='bg-gray-800 text-white hover:bg-gray-600 flex-1'
+                onClick={() => router.push('/auth/register')}
               >
                 Registrarse
               </Button>

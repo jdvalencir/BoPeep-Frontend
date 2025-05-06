@@ -16,17 +16,17 @@ spec:
     spec:
       containers:
         - name: bopeep-frontend
-          image: julianv08/bopeep-frontend:$GITHUB_SHA
+          image: julianv08/bopeep-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: "100Mi"
+              cpu: "50m"
             limits:
-              memory: "256Mi"
-              cpu: "500m"
+              memory: "100Mi"
+              cpu: "50m"
           readinessProbe:
             httpGet:
               path: /
