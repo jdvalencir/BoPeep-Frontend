@@ -13,7 +13,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 
 const formSchema = z.object({
   email: z.string().email("Email inválido").min(1, "Email es requerido"),
@@ -31,10 +45,44 @@ const LoginPage = () => {
     },
   });
 
-  const onSubmit = (values) => {
-    console.log("hagan algo con esto ", values);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+
+  const onSubmit = async (values) => {
+  setLoading(true);
+  setApiError("");
+  console.log("Enviando datos:", values); // Para depuración
+  try {
+  
+    const response = await fetch("https://api.marcianos.me/v1/users/login", {
+      method: "POST",
+      headers: {
+      "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: values.email,
+        password: values.password,
+      }),
+    });
+  
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || "Error al iniciar sesión");
+    }
+  
+    console.log("Iniciada exitosa:", data);
+    
+    } catch (error) {
+    console.error("Error en el inicio de sesión:", error);
+    setApiError(error.message || "Ocurrió un error al iniciar sesión. Por favor intenta nuevamente.");
+    } finally {
+    setLoading(false);
+    router.push("/files")
+    }
 
   };
+  
 
   return (
     <div className='bg-gray-700 min-h-screen flex items-center justify-center'>
@@ -88,16 +136,42 @@ const LoginPage = () => {
             
             {/* Botones */}
             <div className='flex space-x-4'>
-              <Button 
-                type="submit"
-                className='bg-gray-800 hover:bg-gray-600 flex-1'
-              >
-                Iniciar sesión
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    type="submit"
+                    className='bg-gray-800 hover:bg-gray-600 max-w-xs flex-1'
+                    disabled={loading}
+                  >
+                    {loading ? "iniciando..." : "Iniciar sesion"}
+                  </Button>
+                </AlertDialogTrigger>
+  
+                {/* Diálogo para registro exitoso */}
+                {!loading && !apiError && (
+                  console.log("a")          
+                )}
+  
+                {/* Diálogo para errores */}
+                {apiError && (
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Fallo al iniciar sesion</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {apiError}, vuelve a intentarlo
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogAction onClick={() => setApiError("")}>
+                        Aceptar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                )}
+              </AlertDialog>
               <Button 
                 type="button"
-                variant="outline"
-                className='bg-gray-800 text-white hover:bg-gray-600 flex-1'
+                className='bg-gray-800 hover:bg-gray-600 flex-1'
                 onClick={() => router.push('/register')}
               >
                 Registrarse
