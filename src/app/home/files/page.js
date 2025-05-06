@@ -11,7 +11,7 @@ export default function Page() {
 
     return (
         <div style={{ backgroundColor: '#f5f5f5', height: '100vh', padding: '20px' }}>
-            <header style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', justifyContent: 'center' }}>
                 <div className="flex w-full max-w-sm items-center space-x-2">
                     <div style={{ position: 'relative' }}>
                         <Button onClick={() => setDropdownOpen(!dropdownOpen)}><Funnel /></Button>
@@ -47,9 +47,9 @@ export default function Page() {
                     <Input type="email" placeholder="Busqueda por palabras clave" />
                     <Button type="submit">Buscar</Button>
                 </div>
-            </header>
+            </div>
             <hr className='border-2 mb-4'></hr>
-            <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{ 
                     display: 'grid', 
                     gridTemplateColumns: 'repeat(3, 1fr)', 
@@ -60,7 +60,7 @@ export default function Page() {
                     <FileCard iconColor='48a8e4' fileName="Archivo 2"/>
                     <FileCard iconColor='f2803d' fileName="Archivo 3"/>
                 </div>
-            </main>
+            </div>
 
             
         </div>

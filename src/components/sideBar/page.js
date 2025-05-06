@@ -23,12 +23,12 @@ const items = [
   },
   {
     title: "Mis Archivos",
-    url: "/files",
+    url: "/home/files",
     icon: Folder,
   },
   {
     title: "Transferir de Operador",
-    url: "/transfer",
+    url: "/home/transfer",
     icon: LucideUsersRound,
   },
   {

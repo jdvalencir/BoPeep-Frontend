@@ -17,7 +17,7 @@ const LandingPage = () => {
                     onClick={() => handleClick('auth/login')}
                     style={{ backgroundColor: 'white', color: 'black', padding: '10px 20px', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}
                 >
-                    Logia
+                    Login
                 </button>
                 <button 
                     type="button" 
