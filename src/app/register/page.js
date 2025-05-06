@@ -2,7 +2,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,17 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 
@@ -70,7 +81,7 @@ const RegisterPage = () => {
 
   const onSubmit = async (values) => {
 	setLoading(true);
-    setApiError("");
+  setApiError("");
 	console.log("Enviando datos:", values); // Para depuración
 	try {
 		let firstName = splitNameParts(values.Names).first;
@@ -112,6 +123,7 @@ const RegisterPage = () => {
 	  } finally {
 		setLoading(false);
 	  }
+
 	};
 
 
@@ -344,13 +356,57 @@ const RegisterPage = () => {
             
             {/* Botón de Registro */}
             <div className='flex justify-center'>
-              <Button 
-                type="submit"
-                className='bg-gray-800 hover:bg-gray-600 w-full max-w-xs'
-                disabled={loading}
-              >
-                {loading ? "Registrando..." : "Registrarme"}
-              </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  type="submit"
+                  className='bg-gray-800 hover:bg-gray-600 w-full max-w-xs'
+                  disabled={loading}
+                >
+                  {loading ? "Registrando..." : "Registrarme"}
+                </Button>
+              </AlertDialogTrigger>
+
+              {/* Diálogo para registro exitoso */}
+              {!loading && !apiError && (
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Registro Exitoso</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Un correo de confirmación ha sido enviado a tu bandeja de entrada. 
+                      Por favor verifica tu correo para completar el registro.
+                      Si no lo ves, revisa tu carpeta de spam o correo no deseado.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>No me llegó mi correo</AlertDialogCancel>
+                    <AlertDialogAction asChild onClick={() => router.push('/login')}>
+                      <Button className='bg-gray-800 hover:bg-gray-600'>
+                        Lo tengo!
+                      </Button>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              )}
+
+              {/* Diálogo para errores */}
+              {apiError && (
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Error en el registro</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {apiError}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => setApiError("")}>
+                      Aceptar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              )}
+            </AlertDialog>
+              
             </div>
             
             {/* Enlace a Login */}
