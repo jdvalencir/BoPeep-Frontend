@@ -10,10 +10,31 @@ env:
   GKE_CLUSTER: marcianos-cluster   # cluster name
   GKE_ZONE: us-central1-a  # cluster zone
   IMAGE_NAME: bopeep-frontend
-  NAMESPACE: frontend-app
-
+  NAMESPACE: bopeep-frontend
+  DEPLOYMENT_NAME: bopeep-frontend
 jobs:
+  generate-version:
+    runs-on: ubuntu-22.04
+    permissions:
+        contents: write
+    outputs:
+        new_tag: ${{ steps.bump-version.outputs.new_tag }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+            fetch-depth: '0'
+      - name: Bump version and push tag
+        id: bump-version
+        uses: anothrNick/github-tag-action@1.64.0
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            WITH_V: false
+            MAJOR_STRING_TOKEN: "release("
+            MINOR_STRING_TOKEN: "feat("
+            PATCH_STRING_TOKEN: "fix("
+            DEFAULT_BUMP: minor
   setup-build-publish-deploy:
+    needs: generate-version
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
 
@@ -48,11 +69,12 @@ jobs:
         push: true
         tags: julianv08/${{ env.IMAGE_NAME }}:latest, julianv08/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-    # Deploy the Docker image to the GKE cluster
-    - name: Deploy with SHA
+    - name: Deploy
       run: |-
-        export GITHUB_SHA=${{ github.sha }}
-        envsubst < ./k8s/deployment.yaml | kubectl apply -f -
-        kubectl rollout status deployment ${{ env.IMAGE_NAME }}
-        kubectl apply -f ./k8s/service.yaml
-        kubectl get pods
+        kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} ${{ env.DEPLOYMENT_NAME }}=julianv08/${{ env.IMAGE_NAME }}:${{ needs.generate-version.outputs.new_tag }} -n ${{ env.NAMESPACE }}
+        kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }}
+        kubectl apply -f k8s/service.yaml -n ${{ env.NAMESPACE }}
+    - name: Check deployment success
+      run: |
+        while [[ $(kubectl get deployment/${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} -o 'jsonpath={..status.conditions[?(@.type=="Available")].status}') != "True" ]]; do sleep 5; done
+        while [[ $(kubectl get pods -l app=${{ env.DEPLOYMENT_NAME }} -n ${{ env.NAMESPACE }} -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do sleep 5; done
