@@ -27,6 +27,7 @@ export async function middleware(request) {
       return false;
     }
   }
+  
 
   // --- 1. Ruta protegida, pero token inválido ---
   if (isProtectedPage) {

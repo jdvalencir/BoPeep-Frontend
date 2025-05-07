@@ -47,7 +47,7 @@ export function AppSidebar() {
 
 return (
     <Sidebar collapsible="icon">
-        <SidebarContent>
+        <SidebarContent className={'bg-gray-200'}>
             <SidebarGroup className={"pr-0 pl-0"}>
             <div className={`py-[0.6rem] ${state === 'expanded' ? 'border-b-3': ''} border-gray-300 flex items-center `}>
                 <SidebarGroupLabel className={"text-center w-full"}> 
@@ -71,7 +71,7 @@ return (
                         {items.map((item) => (
                             <div key={item.title}>
                                 <SidebarMenuItem key={item.title} className={"pt-1 pl-1"}>
-                                    <SidebarMenuButton asChild className={"background-gray-100 hover:bg-gray-200 py-3 rounded-1"}>
+                                    <SidebarMenuButton asChild className={"background-gray-100 hover:bg-gray-100 py-3 rounded-1"}>
                                         <a href={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>

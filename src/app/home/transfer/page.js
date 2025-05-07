@@ -1,9 +1,9 @@
 "use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, CircleCheckBig, X } from "lucide-react";
 import Cookies from "js-cookie";
 
 const FormSchema = z.object({
@@ -31,6 +31,7 @@ export default function TransferPage() {
   const [operators, setOperators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [transferStatus, setTransferStatus] = useState(null);
 
   const form = useForm({
     resolver: zodResolver(FormSchema),
@@ -42,13 +43,12 @@ export default function TransferPage() {
   useEffect(() => {
     const fetchOperators = async () => {
       try {
-        console.log()
-        const response = await fetch("https://api.marcianos.me/v1/adapter/operators", {
+        const response = await fetch("/api/operators", {
           method: "GET",
           headers: { 
             "Content-Type": "application/json",            
           },
-          credentials: 'include' // esto deberia de agregar las cookies que tengan en http only, tratelo por este lado no quite el httponly 
+          credentials: 'include' 
         });
 
         if (!response.ok) {
@@ -56,7 +56,8 @@ export default function TransferPage() {
         }
 
         const data = await response.json();
-        setOperators(data);
+        setOperators(Array.isArray(data.operators) ? data.operators : []);
+
       } catch (err) {
         setError(err.message);
         console.error("Error fetching operators:", err);
@@ -68,9 +69,50 @@ export default function TransferPage() {
     fetchOperators();
   }, []);
 
-  function onSubmit(data) {
-    console.log("Operador seleccionado:", data);
-    // Aquí puedes agregar la lógica para manejar el operador seleccionado
+  useEffect(() => {
+    if (transferStatus) {
+      const timer = setTimeout(() => {
+        setTransferStatus(null);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [transferStatus]);
+
+  async function onSubmit(data) {
+    try {
+      if (!data.operator) {
+        throw new Error("No se seleccionó ningún operador");
+      }
+  
+      const selectedOperator = operators.find(op => op._id === data.operator);
+      
+      if (!selectedOperator) {
+        throw new Error("Operador no encontrado en la lista");
+      }
+    
+      const response = await fetch(selectedOperator.transferAPIURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        setTransferStatus('error');
+        throw new Error(errorData.message || "Error en la respuesta del servidor");
+      }
+  
+      const result = await response.json();
+      console.log("Respuesta exitosa:", result);
+      setTransferStatus('success');
+      form.reset();
+  
+    } catch (error) {
+      console.log("Error en onSubmit:", error);
+      setTransferStatus('error');
+    }
   }
 
   if (loading) {
@@ -98,7 +140,27 @@ export default function TransferPage() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full min-h-[80vh] p-4">
-      <div className="w-full max-w-md space-y-6">
+      {/* Mostrar alerta SOLO cuando transferStatus tiene valor */}
+      {transferStatus && (
+          <Alert variant={transferStatus === 'error' ? 'destructive' : 'success'}>
+              {transferStatus === 'error' ? (
+                <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              ) : (
+                <CircleCheckBig className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              )}
+              
+                <AlertTitle className="text-base font-semibold">
+                  {transferStatus === 'error' ? 'Ocurrió un error' : '¡Transferencia exitosa!'}
+                </AlertTitle>
+                <AlertDescription>
+                  {transferStatus === 'error'
+                    ? 'No podemos comunicarnos con el operador que solicitaste, verifica que sea transferible. Inténtalo de nuevo en unos instantes.'
+                    : 'Serás redirigido en unos instantes a la página de tu nuevo operador.'}
+                </AlertDescription>
+          </Alert>
+      )}
+      
+      <div className="w-full max-w-md space-y-6 bg-white p-6 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center">Selección de Operador</h1>
         
         <Form {...form}>
@@ -112,24 +174,31 @@ export default function TransferPage() {
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
-                    disabled={operators.length === 0}
+                    disabled={!operators || operators.length === 0}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={
-                          operators.length === 0 
+                          !operators || operators.length === 0 
                             ? "No hay operadores disponibles" 
                             : "Selecciona un operador"
                         } />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {operators.map((operator) => (
-                        <SelectItem 
-                          key={operator.id} 
-                          value={operator.id}
+                      {(operators || []).map((operator) => (
+                        <SelectItem                          
+                          key={operator._id}
+                          value={operator._id}
                         >
-                          {operator.name}
+                          <div className="flex items-center">
+                            {operator.operatorName}
+                            {!operator.transferAPIURL ? 
+                              <span className="text-xs text-gray-500 ml-2">(Sin URL)</span>                          
+                              :
+                              <span className="text-xs text-green-500 ml-2">(Transferible)</span>  
+                            }
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -142,9 +211,14 @@ export default function TransferPage() {
             <Button 
               type="submit" 
               className="w-full"
-              disabled={!form.formState.isDirty || form.formState.isSubmitting || operators.length === 0}
+              disabled={!form.formState.isDirty || form.formState.isSubmitting || !operators || operators.length === 0}
             >
-              {form.formState.isSubmitting ? "Enviando..." : "Continuar"}
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Verificar Operador
+                </>
+              ) : "Verificar Operador"}
             </Button>
           </form>
         </Form>
