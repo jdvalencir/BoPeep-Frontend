@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
           {/* Contenido */}
           <div className="w-full">
             <header className="flex shrink-0 items-center gap-2 border-b bg-gray-200">
-              <div className="flex flex-fill justify-between items-center gap-2 px-3 w-full">
+              <div className="flex flex-fill justify-between items-center gap-2 px-3 w-full scroll">
                 <div className="flex items-center gap-2">
                   <SidebarTrigger />
                   <Separator

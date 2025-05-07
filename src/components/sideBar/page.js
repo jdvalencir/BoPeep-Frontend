@@ -48,8 +48,8 @@ export function AppSidebar() {
 return (
     <Sidebar collapsible="icon">
         <SidebarContent>
-            <SidebarGroup className={"pr-0"}>
-            <div className="py-[0.6rem] border-b border-gray-300 flex items-center">
+            <SidebarGroup className={"pr-0 pl-0"}>
+            <div className={`py-[0.6rem] ${state === 'expanded' ? 'border-b-3': ''} border-gray-300 flex items-center `}>
                 <SidebarGroupLabel className={"text-center w-full"}> 
                     <div className="flex gap-x-2 text-sm items-center justify-center">
                         <Image src="/logo/logo.png" alt="Logo" width={40} height={40} />
@@ -59,6 +59,15 @@ return (
             </div>
                 <SidebarGroupContent>
                     <SidebarMenu>
+                        {state !== "expanded" ? 
+                        <SidebarMenuItem className={"pt-1 pl-1"}>
+                            <SidebarMenuButton asChild className={"background-gray-100 pointer-events-none py-3 rounded-1"}>
+                            <div>
+                                <Image src="/logo/logo.png" alt="Logo" width={40} height={40} />
+                            </div>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        : null}                        
                         {items.map((item) => (
                             <div key={item.title}>
                                 <SidebarMenuItem key={item.title} className={"pt-1 pl-1"}>

@@ -44,6 +44,7 @@ export async function middleware(request) {
           },
           body: JSON.stringify({ refreshToken }),
         });
+        
 
         if (refreshRes.ok) {
           console.log("Token refrescado exitosamente.");

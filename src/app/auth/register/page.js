@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+
 import {
   Form,
   FormControl,
@@ -13,6 +14,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -72,10 +83,12 @@ const RegisterPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+  const [Email, setEmail] = useState("");
 
   const onSubmit = async (values) => {
     setLoading(true);
     setApiError("");
+    setEmail(values.Email)
     console.log("Enviando datos:", values); // Para depuración
     try {
       let firstName = splitNameParts(values.Names).first;
@@ -109,6 +122,10 @@ const RegisterPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        setApiError(
+          data.message ||
+            "Ocurrió un error al registrar. Por favor intenta nuevamente."
+        );
         throw new Error(data.message || "Error al registrar usuario");
       }
 
@@ -376,13 +393,42 @@ const RegisterPage = () => {
 
             {/* Botón de Registro */}
             <div className="flex justify-center">
-              <Button
-                type="submit"
-                className="bg-gray-800 hover:bg-gray-600 w-full max-w-xs"
-                disabled={loading}
-              >
-                {loading ? "Registrando..." : "Registrarme"}
-              </Button>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="submit"
+                    className="bg-gray-800 hover:bg-gray-600 flex-1 max-w-xs cursor-pointer"
+                    disabled={loading}
+                  >
+                    {loading ? "Validando..." : "registarme"}
+                  </Button>
+                </AlertDialogTrigger>
+
+                {apiError && !loading ?
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Error</AlertDialogTitle>
+                      {apiError}
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogAction>Intentar de nuevo</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                : 
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¡Felicidades!</AlertDialogTitle>
+                      ¡Listo! En un momento recibirás un correo a {Email} para crear tu contraseña. 
+                      ¿No lo ves? Échale un vistazo a la carpeta de spam, a veces se esconde ahí  
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>                      
+                      <AlertDialogAction onClick={() => router.push("/auth/login")}>
+                        Lo tengo
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                }
+              </AlertDialog>
             </div>
 
             {/* Enlace a Login */}

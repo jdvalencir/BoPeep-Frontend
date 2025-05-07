@@ -31,21 +31,7 @@ const Header = () => {
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
         {dropdownOpen && (
-          <div style={styles.dropdownMenu} className="bg-gray-200">
-            <button
-              className="bg-gray-200"
-              style={styles.dropdownItem}
-              onClick={() => router.push("/profile")}
-            >
-              Perfil
-            </button>
-            <button
-              className="bg-gray-200"
-              style={styles.dropdownItem}
-              onClick={() => router.push("/settings")}
-            >
-              Configuración
-            </button>
+          <div style={styles.dropdownMenu} className="bg-gray-200 flex flex-column">            
             <button
               className="bg-gray-200"
               style={styles.dropdownItem}
@@ -99,7 +85,7 @@ const styles = {
     fontSize: "14px",
     cursor: "pointer",
     border: "none",
-    textAlign: "left",
+    textAlign: "center",
     width: "100%",
   },
 };
