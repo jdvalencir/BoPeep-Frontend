@@ -90,7 +90,7 @@ export default function Page() {
         <div className="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-5 text-center relative">
           {/* Botón de regresar (esquina superior izquierda) */}
           <button
-            onClick={handleGoBack}
+            onClick={()=> router.push('/home')}
             className="absolute top-5 left-5 flex items-center gap-1 text-gray-600 hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
