@@ -12,7 +12,8 @@ export async function POST(req) {
         }
 
   try {
-    const formData = await request.formData();
+    console.log(req)
+    const formData = await req.formData();
     const file = formData.get('file');
     
     if (!file) {

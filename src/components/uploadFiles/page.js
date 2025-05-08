@@ -31,9 +31,6 @@ const FileUploader = () => {
             const response = await fetch("/api/upload", { 
                 method: "POST",
                 body: formData,
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
                 credentials: "include", // Asegúrate de incluir las cookies
             });
 
