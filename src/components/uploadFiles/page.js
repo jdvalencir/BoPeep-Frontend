@@ -20,24 +20,39 @@ const FileUploader = () => {
     };
 
     // Simulación de llamada API
-    const simulateUpload = (file) => {
-        setIsUploading(true);
-        
-        // Simulamos un retraso de 2 segundos (como una API real)
-        setTimeout(() => {
-            setIsUploading(false);
-            
-            // Simulamos un 80% de éxito y 20% de error (para pruebas)
-            const isSuccess = Math.random() > 0.2;
-            
-            if (isSuccess) {
-                setUploadStatus("success");
-                console.log("Archivo subido:", file.name);
-            } else {
-                setUploadStatus("error");
-                console.error("Error al subir el archivo");
+    const simulateUpload = async (file) => {
+        try {
+            setIsUploading(true);
+            setUploadStatus(null);
+            const formData = new FormData();
+            console.log("Subiendo archivo:", file);
+            // Aquí puedes agregar la lógica para subir el archivo a tu API
+            formData.append("file", file);
+            const response = await fetch("/api/upload", { 
+                method: "POST",
+                body: formData,
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+                credentials: "include", // Asegúrate de incluir las cookies
+            });
+
+            console.log("Respuesta de la API:", response);
+
+            if (!response.ok) {
+                throw new Error("Error en la subida del archivo");
             }
-        }, 100);
+
+            const data = await response.json();
+            console.log("Respuesta de la API:", data);
+            setUploadStatus("success");
+        } catch (error) {
+            setUploadStatus("error");
+            console.error("Error al subir el archivo:", error);
+        } finally {
+            setIsUploading(false);
+        }
+
     };
 
     const handleButtonClick = () => {
