@@ -54,19 +54,15 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
-
+      
       if (!response.ok)
         throw new Error(data.message || "Error al iniciar sesión");
+      
+      document.cookie = `accessToken=${data.accessToken}; path=/; secure; samesite=strict; max-age=3600`;
+      document.cookie = `refreshToken=${data.refreshToken}; path=/; secure; samesite=strict; max-age=604800`;
 
-      Cookies.set("accessToken", data.accessToken, {
-        secure: true,
-        sameSite: "strict",
-        expires: 1 / 24,
-      });
-      Cookies.set("refreshToken", data.refreshToken, {
-        secure: true,
-        sameSite: "strict",
-      });
+      
+      console.log(data);
       router.push("/home");
     } catch (error) {
       setApiError(error.message || "Error desconocido al iniciar sesión.");

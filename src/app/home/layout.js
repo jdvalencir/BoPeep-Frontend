@@ -12,12 +12,12 @@ export default function RootLayout({ children }) {
     <SidebarProvider>
       {/* Sidebar */}
       <SidebarInset>
-        <div className="flex flex-row justify-start">
+        <div className="flex flex-row justify-start overflow-hidden w-full h-screen">
           <AppSidebar />
           {/* Contenido */}
-          <div className="w-full">
+          <div className="w-full scroll-y-hidden">
             <header className="flex shrink-0 items-center gap-2 border-b bg-gray-200">
-              <div className="flex flex-fill justify-between items-center gap-2 px-3 w-full scroll">
+              <div className="flex flex-fill justify-between items-center gap-2 px-3 w-full">
                 <div className="flex items-center gap-2">
                   <SidebarTrigger />
                   <Separator
@@ -28,7 +28,7 @@ export default function RootLayout({ children }) {
                 <Header className="flex-grow" />
               </div>
             </header>
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 ">{children}</main>
           </div>
         </div>
       </SidebarInset>
