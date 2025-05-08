@@ -2,12 +2,16 @@
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import Cookies from "js-cookie";
+import { useEffect, useState } from "react";
 
 const Header = () => {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [name, setName] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
@@ -17,11 +21,40 @@ const Header = () => {
     Cookies.remove("accessToken");
     Cookies.remove("refreshToken");
     router.push("/");
-  }
+  };
+
+  useEffect(() => {
+      const fetchOperators = async () => {
+        try {
+          const response = await fetch("/api/user", {
+            method: "GET",
+            headers: { 
+              "Content-Type": "application/json",            
+            },
+            credentials: 'include' 
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+          }
+  
+          const data = await response.json();
+          setName(data.name);
+  
+        } catch (err) {
+          setError(err.message);
+          console.error("Error fetching usuario:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchOperators();
+    }, []);
 
   return (
     <div style={styles.header}>
-      <div className="mx-2">Bienvenido a la aplicación</div>
+      <div className="mx-2">Bienvenido a la aplicación, {name? name : null}</div>
       <div style={styles.profileContainer}>
         <Avatar
           onClick={toggleDropdown}

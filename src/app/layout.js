@@ -21,9 +21,7 @@ export default function RootLayout({ children }) {
     <html lang="en" nighteye="disabled">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        cz-shortcut-listen="true"
-        style={{overflow: 'hidden'}}
-      >
+        cz-shortcut-listen="true">
         <div className="h-screen">
           <main className="flex-1">{children}</main>
         </div>

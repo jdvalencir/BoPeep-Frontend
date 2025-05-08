@@ -37,14 +37,16 @@ const FileUploader = () => {
                 setUploadStatus("error");
                 console.error("Error al subir el archivo");
             }
-        }, 2000);
+        }, 100);
     };
 
     const handleButtonClick = () => {
-        // Resetear el estado si ya hubo una subida exitosa
         if (uploadStatus === "success") {
             setUploadStatus(null);
             setSelectedFile(null);
+            setFileName(null);
+            setSelectedFile(null)
+            setIsUploading(false)
         }
         fileInputRef.current.click();
     };
@@ -105,7 +107,7 @@ const FileUploader = () => {
                 ) : uploadStatus === "success" ? (
                 <>
                     <Upload className="w-5 h-5" />
-                    Subir otro archivo
+                    Subir otro archivo                    
                 </>
                 ) : uploadStatus === "error" ? (
                 <>
@@ -117,7 +119,8 @@ const FileUploader = () => {
                     <Upload className="w-5 h-5" />
                     {selectedFile ? "Cambiar archivo" : "Subir un archivo"}
                 </>
-                )}
+                )
+                }
             </button>
     
             {/* Mensaje adicional */}

@@ -30,17 +30,15 @@ import { ArrowLeft } from "lucide-react";
 
 const formSchema = z
   .object({
-    DocumentType: z.string().min(1, "Selecciona un tipo de documento"),
-    IdNumber: z.string().min(6, "La cédula debe tener al menos 6 caracteres"),
-    Names: z.string().min(2, "Los nombres deben tener al menos 2 caracteres"),
-    LastNames: z
-      .string()
-      .min(2, "Los apellidos deben tener al menos 2 caracteres"),
+    DocumentType: z.string().min(2, "Selecciona un tipo de documento"),
+    IdNumber: z.string().min(10, "La cédula debe tener al menos 6 caracteres"),
+    Names: z.string().min(2, "Los nombres deben tener al menos 2 caracteres").max(200,'El apellido no puede ser de mas de 200 caracteres'),
+    LastNames: z.string().min(2, "Los apellidos deben tener al menos 2 caracteres").max(200,'El apellido no puede ser de mas de 200 caracteres'),
     Email: z.string().email("Email inválido"),
     ConfirmEmail: z.string().email("Email inválido"),
     Phone: z.string().min(7, "El teléfono debe tener al menos 7 caracteres"),
-    Country: z.string().min(1, "El país es requerido"),
-    Department: z.string().min(1, "El departamento es requerido"),
+    Country: z.string().min(1, "El país es requerido").max(60,'El pais no puede ser de mas de 60 caracteres'),
+    Department: z.string().min(1, "El departamento es requerido").max(60,'El departamento no ser puede ser ma de 60 caracteres'),
     City: z.string().min(1, "La ciudad es requerida"),
     Address: z.string().min(5, "La dirección debe tener al menos 5 caracteres"),
   })
@@ -48,11 +46,12 @@ const formSchema = z
     message: "Los emails no coinciden",
     path: ["ConfirmEmail"],
   });
+  
 
-function splitNameParts(fullString) {
-  if (!fullString || typeof fullString !== "string") {
-    return { first: "", second: "" };
-  }
+  function splitNameParts(fullString) {
+    if (!fullString || typeof fullString !== "string") {
+      return { first: "", second: "" };
+    }
 
   const parts = fullString.trim().split(/\s+/); // Divide por cualquier espacio (incluye múltiples)
 
@@ -84,7 +83,12 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [Email, setEmail] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
+  const handleRetry = () => {
+    setApiError("");
+    form.reset();
+  };
   const onSubmit = async (values) => {
     setLoading(true);
     setApiError("");
@@ -122,20 +126,18 @@ const RegisterPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setApiError(
-          data.message ||
-            "Ocurrió un error al registrar. Por favor intenta nuevamente."
-        );
         throw new Error(data.message || "Error al registrar usuario");
       }
 
       console.log("Registro exitoso:", data);
+      setDialogOpen(true);
     } catch (error) {
       console.error("Error en el registro:", error);
       setApiError(
         error.message ||
           "Ocurrió un error al registrar. Por favor intenta nuevamente."
       );
+      setDialogOpen(true);
     } finally {
       setLoading(false);
     }
@@ -393,43 +395,44 @@ const RegisterPage = () => {
 
             {/* Botón de Registro */}
             <div className="flex justify-center">
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    type="submit"
-                    className="bg-gray-800 hover:bg-gray-600 flex-1 max-w-xs cursor-pointer"
-                    disabled={loading}
-                  >
-                    {loading ? "Validando..." : "registarme"}
-                  </Button>
-                </AlertDialogTrigger>
+              <Button
+                type="submit" // Importante mantener type="submit"
+                className="bg-gray-800 hover:bg-gray-600 flex-1 max-w-xs cursor-pointer"
+                disabled={loading}
+              >
+                {loading ? "Validando..." : "Registrarme"}
+              </Button>
+            </div>
 
-                {apiError && !loading ?
-                  <AlertDialogContent>
+            <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <AlertDialogContent>
+                {apiError ? (
+                  <>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Error</AlertDialogTitle>
                       {apiError}
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogAction>Intentar de nuevo</AlertDialogAction>
+                      <AlertDialogAction onClick={handleRetry}>
+                        Intentar de nuevo
+                      </AlertDialogAction>
                     </AlertDialogFooter>
-                  </AlertDialogContent>
-                : 
-                <AlertDialogContent>
+                  </>
+                ) : (
+                  <>
                     <AlertDialogHeader>
                       <AlertDialogTitle>¡Felicidades!</AlertDialogTitle>
-                      ¡Listo! En un momento recibirás un correo a {Email} para crear tu contraseña. 
-                      ¿No lo ves? Échale un vistazo a la carpeta de spam, a veces se esconde ahí  
+                      ¡Listo! En un momento recibirás un correo a {Email} para crear tu contraseña.
                     </AlertDialogHeader>
-                    <AlertDialogFooter>                      
+                    <AlertDialogFooter>
                       <AlertDialogAction onClick={() => router.push("/auth/login")}>
                         Lo tengo
                       </AlertDialogAction>
                     </AlertDialogFooter>
-                  </AlertDialogContent>
-                }
-              </AlertDialog>
-            </div>
+                  </>
+                )}
+              </AlertDialogContent>
+            </AlertDialog>
 
             {/* Enlace a Login */}
             <div className="text-center">
