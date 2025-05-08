@@ -18,7 +18,6 @@ import FileUploader from "@/components/uploadFiles/page";
 export default function Page() {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [items, setItems] = useState(["a"]);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -65,7 +64,7 @@ export default function Page() {
 
         const data = await response.json();
         console.log("Documentos:", data);
-        setDocuments(data);
+        setDocuments(data.documents);
       } catch (error) {
         setError(error.message);
         console.error("Error fetching items:", error);
@@ -87,7 +86,7 @@ export default function Page() {
 
   return (
     <div>
-      {!items || items.length === 0 ? (
+      {!documents || documents.length === 0 ? (
         <div className="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-5 text-center relative">
           {/* Botón de regresar (esquina superior izquierda) */}
           <button
@@ -232,7 +231,8 @@ export default function Page() {
                     fileType={item.type}
                   />
                 </div>
-              ))}
+              ))
+              }
               {/* Ejemplo de FileCard */}
             </div>
           </div>
