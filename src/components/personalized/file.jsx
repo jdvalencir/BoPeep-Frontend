@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "../ui/button";
 import {
   FileText,
@@ -14,17 +14,18 @@ import {
   Loader2,
 } from "lucide-react";
 
-const FileCard = ({
+const FileCard = React.memo(({
   fileName,
   iconColor = "#666",
   fileType = "",
   authenticated = false,
 }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [signedUrl, setSignedUrl] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [loadingV, setLoadingV] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [veri, setVeri] = useState(false);
 
 
@@ -71,142 +72,58 @@ const FileCard = ({
       setLoadingV(false);
     }
   }
-  const handleCardClick = async (fileName) => {
-    setSelectedFile(fileName);
 
+
+  const handleCardClick = async () => {
+    if (isModalOpen) return; // Evita reabrir si ya está abierto
+    
+    setIsModalOpen(true);
+    setLoading(true);
+    
     if (isPreviewable(fileType)) {
-      setLoading(true);
       try {
         const response = await fetch(`/api/preview?file_name=${fileName}`, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", // Asegúrate de incluir las cookies
+          headers: { "Content-Type": "application/json" },
+          credentials: "include"
         });
+        
         if (response.ok) {
           const data = await response.json();
-          console.log("Signed URL:", data.signed_url);
           setSignedUrl(data.signed_url);
         }
       } catch (error) {
-        console.error("Error fetching signed URL:", error);
+        console.error("Error al obtener previsualización:", error);
       } finally {
         setLoading(false);
       }
     }
   };
 
+
   const closeModal = (e) => {
-    e.stopPropagation();
-    setSelectedFile(null);
-    setSignedUrl(null);
+    e?.stopPropagation();
+    setSelectedFile(null)
+    setIsModalOpen(false);
+    setSignedUrl(null); // Limpia la URL al 
+    setIsHovered(false)
   };
 
-  const renderPreview = () => {
-    if (loading) {
-      return (
-        <div className="flex flex-col items-center justify-center w-full">
-          <Loader2 className="w-8 h-8 animate-spin" />
-          <p className="mt-4">Cargando Preview...</p>
-        </div>
-      );
-    }
+  const renderModal = () => {
+    if (!isModalOpen) return null;
 
-    if (!signedUrl) {
-      return <div>Preview not available</div>;
-    }
-
-    if (fileType.includes("image")) {
-      return (
-        <img
-          src={signedUrl}
-          alt={fileName}
-          style={{ maxWidth: "100%", maxHeight: "50vh" }}
-        />
-      );
-    }
-
-    if (fileType.includes("pdf")) {
-      return (
-        <iframe
-          src={signedUrl}
-          style={{ width: "100%", height: "70vh" }}
-          title={fileName}
-        />
-      );
-    }
-
-    if (fileType.includes("video")) {
-      return (
-        <video controls style={{ maxWidth: "100%", maxHeight: "50vh" }}>
-          <source src={signedUrl} type={fileType} />
-          Your browser does not support video playback.
-        </video>
-      );
-    }
-
-    if (fileType.includes("audio")) {
-      return (
-        <audio controls style={{ width: "100%" }}>
-          <source src={signedUrl} type={fileType} />
-          Your browser does not support audio playback.
-        </audio>
-      );
-    }
-
-    return <div>Preview not supported for this file type</div>;
-  };
-
-  const FileIcon = getFileIcon();
-
-  return (
-    <div
-      style={styles.card}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={() => handleCardClick(fileName)}
-    >
-      <div style={styles.iconContainer}>
-        {React.cloneElement(FileIcon, {
-          size: "90%",
-          style: {
-            margin: "5%",
-            color: `#${iconColor}`,
-            width: "90%",
-            height: "90%",
-          },
-        })}
-        {authenticated ? (
-          <Lock size={18} style={styles.authIcon} color="#10b981" />
-        ) : (
-          <Unlock size={18} style={styles.authIcon} color="#ef4444" />
-        )}
-      </div>
-      <div
-      className="truncate"
-        style={{
-          ...styles.label,
-          backgroundColor: isHovered ? "#dcdcdc" : "#f8f8f8",
-          cursor: isHovered ? "pointer" : "default",
-        }}
-      >
-        {fileName}
-      </div>
-
-      {selectedFile && (
-        <div style={styles.modal}>
-          <button onClick={closeModal} style={styles.closeButton}>
-            &times;
-          </button>
-          <div style={styles.modalContent} className="flex flex-col items-center gap-4 p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Detalles del Archivo</h2>
-            
+    return (
+      <div style={styles.modal}>
+        <button onClick={closeModal} style={styles.closeButton}>
+          &times;
+        </button>
+        <div style={styles.modalContent} className="flex flex-col">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Detalles del Archivo</h2>            
             <div className="w-full bg-gray-50 rounded-lg p-4 mb-4">
               <div className="grid grid-cols-2 gap-4 mb-3">
                 <div className="bg-white p-3 rounded shadow-sm">
                   <p className="text-sm font-medium text-gray-500">Nombre</p>
-                  <p className="text-gray-800 font-semibold truncate">{selectedFile}</p>
+                  <p className="text-gray-800 font-semibold truncate">{fileName}</p>
                 </div>
                 <div className="bg-white p-3 rounded shadow-sm">
                   <p className="text-sm font-medium text-gray-500">Tipo</p>
@@ -216,7 +133,7 @@ const FileCard = ({
               
               <div className="bg-white p-3 rounded shadow-sm">
                 <p className="text-sm font-medium text-gray-500">Estado</p>
-                <p className={`font-semibold ${authenticated ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`font-semibold ${authenticated ? 'text-green-600' : 'text-red-600'}`}>
                   {authenticated ? (
                     <span className="flex items-center gap-1">
                       <span>Autenticado</span>
@@ -243,32 +160,157 @@ const FileCard = ({
                       </span>                      
                     </div>                                                          
                   )}
-                </p>
+                </div>
               </div>
             </div>
-
-            <div className="w-full bg-gray-50 rounded-lg p-4 flex flex-col items-center">
-              <h3 className="text-lg font-medium text-gray-700 mb-3">Vista Previa</h3>
-              <div className="w-full min-h-[200px] max-h-[400px] flex items-center justify-center bg-white rounded border border-gray-200 p-4 overflow-auto">
-                {isPreviewable(fileType) ? (
-                  renderPreview()
-                ) : (
-                  <div className="text-center text-gray-500">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="mt-2">Vista previa no disponible</p>
-                    <p className="text-sm">Este tipo de archivo no puede mostrarse</p>
-                  </div>
-                )}
-              </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center w-full h-full p-4 bg-gray-50 rounded-lg">
+                <div className="mb-4 p-3 bg-blue-100 rounded-full">
+                   ...Cargando Previsualización
+                </div>
             </div>
-          </div>
+          ) : (
+            renderPreview() // Usa tu función existente
+          )}
         </div>
-      )}
+      </div>
+    );
+  };
+
+  const renderPreview = () => {
+    // Contenedor base para todos los previews
+    const PreviewContainer = ({ children, icon: Icon }) => (
+      <div className="flex flex-col items-center justify-center w-full h-full p-4 bg-gray-50 rounded-lg">
+        {Icon && (
+          <div className="mb-4 p-3 bg-blue-100 rounded-full">
+            <Icon className="w-8 h-8 text-blue-600" />
+          </div>
+        )}
+        <div className="w-full flex justify-center">
+          {children}
+        </div>
+      </div>
+    );
+  
+    if (loading) {
+      return (
+        <PreviewContainer icon={Loader2}>
+          <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+          <p className="mt-4 text-gray-600">Cargando vista previa...</p>
+        </PreviewContainer>
+      );
+    }
+  
+    if (!signedUrl) {
+      return (
+        <PreviewContainer icon={File}>
+          <div className="text-center">
+            <p className="text-gray-600 font-medium">Vista previa no disponible</p>
+            <p className="text-sm text-gray-500 mt-1">No se pudo cargar el archivo</p>
+          </div>
+        </PreviewContainer>
+      );
+    }
+  
+    if (fileType.includes("image")) {
+      return (
+        <PreviewContainer>
+          <img
+            src={signedUrl}
+            alt={fileName}
+            className="max-w-full max-h-[60vh] object-contain rounded-md shadow-sm"
+          />
+        </PreviewContainer>
+      );
+    }
+  
+    if (fileType.includes("pdf")) {
+      return (
+        <PreviewContainer>
+          <iframe
+            src={signedUrl}
+            className="w-full h-[70vh] border border-gray-200 rounded-md"
+            title={fileName}
+          />
+        </PreviewContainer>
+      );
+    }
+  
+    if (fileType.includes("video")) {
+      return (
+        <PreviewContainer>
+          <video 
+            controls 
+            className="max-w-full max-h-[60vh] rounded-md shadow-sm"
+          >
+            <source src={signedUrl} type={fileType} />
+            <p className="text-gray-500">Tu navegador no soporta videos</p>
+          </video>
+        </PreviewContainer>
+      );
+    }
+  
+    if (fileType.includes("audio")) {
+      return (
+        <PreviewContainer icon={Music}>
+          <audio controls className="w-full max-w-md">
+            <source src={signedUrl} type={fileType} />
+            <p className="text-gray-500">Tu navegador no soporta audio</p>
+          </audio>
+        </PreviewContainer>
+      );
+    }
+  
+    return (
+      <PreviewContainer icon={FileText}>
+        <div className="text-center">
+          <p className="text-gray-600 font-medium">Tipo de archivo no compatible</p>
+          <p className="text-sm text-gray-500 mt-1">
+            No podemos mostrar una vista previa de este tipo de archivo
+          </p>
+        </div>
+      </PreviewContainer>
+    );
+  };
+
+  const FileIcon = getFileIcon();
+
+  return (
+    <div
+        style={styles.card}
+        onClick={() => !isModalOpen && handleCardClick(fileName)}
+        onMouseDown={(e) => e.preventDefault()} // Evita focos no deseados
+      >
+      <div style={styles.iconContainer} onMouseEnter={()=> {!isModalOpen? setIsHovered(true): setIsHovered(false)}} onMouseLeave={()=> {!isModalOpen? setIsHovered(false): setIsHovered(true)}}>
+        {React.cloneElement(FileIcon, {
+          size: "90%",
+          style: {
+            margin: "5%",
+            color: `#${iconColor}`,
+            width: "90%",
+            height: "90%",
+          },
+        })}
+        {authenticated ? (
+          <Lock size={18} style={styles.authIcon} color="#10b981" />
+        ) : (
+          <Unlock size={18} style={styles.authIcon} color="#ef4444" />
+        )}
+      </div>
+      <div className="truncate hover:bg-gray-500"
+        style={{
+          ...styles.label,
+          backgroundColor: isHovered ? "#dcdcdc" : "#f8f8f8",
+          cursor:"pointer",
+        }}>
+        {fileName}
+      </div>
+      {isModalOpen && (
+        renderModal()
+      ) }
     </div>
   );
-};
+});
 
 const styles = {
   card: {
