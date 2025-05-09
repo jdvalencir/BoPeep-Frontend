@@ -16,19 +16,33 @@ const FileUploader = () => {
         }
     };
 
-    const handleUpload = () => {
-        if (!selectedFile) return;
-        
-        setIsUploading(true);
-        setUploadStatus(null);
-        
-        // Simulación de llamada API
-        setTimeout(() => {
+    // Simulación de llamada API
+    const simulateUpload = async () => {
+        try {
+            setIsUploading(true);
+            setUploadStatus(null);
+            const formData = new FormData();
+            // Aquí puedes agregar la lógica para subir el archivo a tu API
+            formData.append("file", selectedFile);
+            const response = await fetch("/api/upload", { 
+                method: "POST",
+                body: formData,
+                credentials: "include", // Asegúrate de incluir las cookies
+            });
+
+            if (!response.ok) {
+                throw new Error("Error en la subida del archivo");
+            }
+
+            const data = await response.json();
+            setUploadStatus("success");
+        } catch (error) {
+            setUploadStatus("error");
+            console.error("Error al subir el archivo:", error);
+        } finally {
             setIsUploading(false);
-            const isSuccess = Math.random() > 0.2;
-            setUploadStatus(isSuccess ? "success" : "error");
-            console.log(isSuccess ? "Archivo subido" : "Error al subir");
-        }, 1000);
+        }
+
     };
 
     const handleNewFile = () => {
@@ -90,7 +104,7 @@ const FileUploader = () => {
                         
                         {selectedFile && (
                             <button
-                                onClick={handleUpload}
+                                onClick={simulateUpload}
                                 disabled={isUploading}
                                 className="flex items-center gap-2 font-medium py-2 px-6 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-sm"
                             >

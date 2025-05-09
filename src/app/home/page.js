@@ -79,7 +79,7 @@ export default function Page() {
         return (
           <div className="flex flex-col items-center justify-center w-full min-h-[80vh]">
             <Loader2 className="w-8 h-8 animate-spin" />
-            <p className="mt-4">Cargando Preview...</p>
+            <p className="mt-4">Cargando archivos...</p>
           </div>
         );
       }
