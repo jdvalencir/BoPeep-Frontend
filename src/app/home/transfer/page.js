@@ -91,11 +91,17 @@ export default function TransferPage() {
         throw new Error("Operador no encontrado en la lista");
       }
     
-      const response = await fetch(selectedOperator.transferAPIURL, {
+      const response = await fetch("/api/transfer", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        include: 'credentials',
+        body: JSON.stringify({
+          operatorId: selectedOperator._id,
+          operatorName: selectedOperator.operatorName,
+          transferUrl: selectedOperator.transferAPIURL,
+        }),
       });
   
       if (!response.ok) {

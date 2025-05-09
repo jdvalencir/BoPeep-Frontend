@@ -12,7 +12,7 @@ const FileUploader = () => {
         const file = event.target.files[0];
         if (file) {
             setSelectedFile(file);
-            setUploadStatus(null); // Resetear estado anterior al seleccionar nuevo archivo
+            setUploadStatus(null);
         }
     };
 

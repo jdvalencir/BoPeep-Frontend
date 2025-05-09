@@ -22,8 +22,24 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-
   const [addFile, setAddFile] = useState(false);
+  
+  // New state variables for search and filtering
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({
+    fileTypes: {
+      pdf: false,
+      image: false,
+      video: false,
+      document: false,
+      other: false
+    },
+    authenticated: {
+      authenticated: false,
+      notAuthenticated: false
+    }
+  });
+
   // Función para el botón de regresar
   const handleGoBack = () => {
     router.push("/home");
@@ -54,43 +70,147 @@ export default function Page() {
     );
   });
 
+  // Add these functions after your existing helper functions
+
+  // Handle search input changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Handle search submission
+  const handleSearch = (e) => {
+    e.preventDefault(); // Prevent form submission
+    // The search is already handled by the filtering function
+  };
+
+  // Handle filter changes
+  const handleFilterChange = (category, value) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      [category]: {
+        ...prevFilters[category],
+        [value]: !prevFilters[category][value]
+      }
+    }));
+  };
+
+  // Reset all filters
+  const resetFilters = () => {
+    setFilters({
+      fileTypes: {
+        pdf: false,
+        image: false,
+        video: false,
+        document: false,
+        other: false
+      },
+      authenticated: {
+        authenticated: false,
+        notAuthenticated: false
+      }
+    });
+    setSearchTerm("");
+  };
+
+  // Filter documents based on search term and selected filters
+  const getFilteredDocuments = () => {
+    if (!documents) return [];
+
+    return documents.filter(doc => {
+      // Filter by search term
+      if (searchTerm && !doc.file_name.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+
+      // Check if any file type filters are selected
+      const anyFileTypeSelected = Object.values(filters.fileTypes).some(value => value);
+      
+      if (anyFileTypeSelected) {
+        const docType = doc.type.toLowerCase();
+        
+        // Check if document matches any selected file type
+        if (
+          (filters.fileTypes.pdf && docType.includes("pdf")) ||
+          (filters.fileTypes.image && docType.includes("image")) ||
+          (filters.fileTypes.video && docType.includes("video")) ||
+          (filters.fileTypes.document && (
+            docType.includes("document") || 
+            docType.includes("word") || 
+            docType.includes("openxmlformats-officedocument.word")
+          )) ||
+          (filters.fileTypes.other && 
+            !docType.includes("pdf") && 
+            !docType.includes("image") && 
+            !docType.includes("video") && 
+            !docType.includes("document") && 
+            !docType.includes("word"))
+        ) {
+          // Document passes file type filter
+        } else {
+          return false;
+        }
+      }
+
+      // Check if any authentication filters are selected
+      const anyAuthSelected = Object.values(filters.authenticated).some(value => value);
+      
+      if (anyAuthSelected) {
+        if (
+          (filters.authenticated.authenticated && doc.authenticated) ||
+          (filters.authenticated.notAuthenticated && !doc.authenticated)
+        ) {
+          // Document passes authentication filter
+        } else {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
+  const fetchItems = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/documents", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Asegúrate de incluir las cookies
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setDocuments(data.documents);
+    } catch (error) {
+      setError(error.message);
+      console.error("Error fetching items:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/documents", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", // Asegúrate de incluir las cookies
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        setDocuments(data.documents);
-      } catch (error) {
-        setError(error.message);
-        console.error("Error fetching items:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchItems();
   }, []); // Llama a la función al cargar el componente
 
+  const onRefresh = () => {
+    setDocuments([]);
+    fetchItems();
+  };
+
   if (loading) {
-        return (
-          <div className="flex flex-col items-center justify-center w-full min-h-[80vh]">
-            <Loader2 className="w-8 h-8 animate-spin" />
-            <p className="mt-4">Cargando archivos...</p>
-          </div>
-        );
-      }
+    return (
+      <div className="flex flex-col items-center justify-center w-full min-h-[80vh]">
+        <Loader2 className="w-8 h-8 animate-spin" />
+        <p className="mt-4">Cargando archivos...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -98,7 +218,7 @@ export default function Page() {
         <div className="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-5 text-center relative">
           {/* Botón de regresar (esquina superior izquierda) */}
           <button
-            onClick={()=> router.push('/home')}
+            onClick={() => router.push("/home")}
             className="absolute top-5 left-5 flex items-center gap-1 text-gray-600 hover:text-gray-800 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -138,60 +258,101 @@ export default function Page() {
                       right: "100%",
                       border: "1px solid #ccc",
                       borderRadius: "4px",
-                      padding: "10px",
+                      padding: "15px",
                       zIndex: 1000,
-                      display: "grid",
-                      gridTemplateColumns: "repeat(2, 1fr)",
-                      gap: "10px",
-                      width: "200px",
+                      width: "350px",
                     }}
                     className="bg-gray-200"
                   >
-                    <label
-                      style={{
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                      }}
-                      className="bg-white"
+                    <h4 className="font-bold mb-2">Tipo de archivo</h4>
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      <label className="bg-white p-2 rounded flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={filters.fileTypes.pdf} 
+                          onChange={() => handleFilterChange('fileTypes', 'pdf')}
+                          className="mr-2"
+                        /> 
+                        PDF
+                      </label>
+                      <label className="bg-white p-2 rounded flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={filters.fileTypes.image} 
+                          onChange={() => handleFilterChange('fileTypes', 'image')}
+                          className="mr-2"
+                        /> 
+                        Imágenes
+                      </label>
+                      <label className="bg-white p-2 rounded flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={filters.fileTypes.video} 
+                          onChange={() => handleFilterChange('fileTypes', 'video')}
+                          className="mr-2"
+                        /> 
+                        Videos
+                      </label>
+                      <label className="bg-white p-2 rounded flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={filters.fileTypes.document} 
+                          onChange={() => handleFilterChange('fileTypes', 'document')}
+                          className="mr-2"
+                        /> 
+                        Documentos
+                      </label>
+                      <label className="bg-white p-2 rounded flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={filters.fileTypes.other} 
+                          onChange={() => handleFilterChange('fileTypes', 'other')}
+                          className="mr-2"
+                        /> 
+                        Otros
+                      </label>
+                    </div>
+                    
+                    <h4 className="font-bold mb-2">Estado</h4>
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      <label className="bg-white p-2 rounded flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={filters.authenticated.authenticated} 
+                          onChange={() => handleFilterChange('authenticated', 'authenticated')}
+                          className="mr-2"
+                        /> 
+                        Autenticado
+                      </label>
+                      <label className="bg-white p-2 rounded flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={filters.authenticated.notAuthenticated} 
+                          onChange={() => handleFilterChange('authenticated', 'notAuthenticated')}
+                          className="mr-2"
+                        /> 
+                        No autenticado
+                      </label>
+                    </div>
+                    
+                    <Button 
+                      onClick={resetFilters} 
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
                     >
-                      <input type="checkbox" /> Filtro
-                    </label>
-                    <label
-                      style={{
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                      }}
-                      className="bg-white"
-                    >
-                      <input type="checkbox" /> Filtro
-                    </label>
-                    <label
-                      style={{
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                      }}
-                      className="bg-white"
-                    >
-                      <input type="checkbox" /> Filtro
-                    </label>
-                    <label
-                      style={{
-                        padding: "10px",
-                        border: "1px solid #ddd",
-                        borderRadius: "4px",
-                      }}
-                      className="bg-white"
-                    >
-                      <input type="checkbox" /> Filtro
-                    </label>
+                      Limpiar filtros
+                    </Button>
                   </div>
                 )}
               </div>
-              <Input type="email" placeholder="Busqueda por palabras clave" />
-              <Button type="submit">Buscar</Button>
+              <form onSubmit={handleSearch} className="flex flex-1">
+                <Input 
+                  type="text" 
+                  placeholder="Búsqueda por palabras clave"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="flex-1"
+                />
+              </form>
             </div>
             <div className="ml-4">
               <Button
@@ -200,7 +361,15 @@ export default function Page() {
                 }}
                 className={"bg-green-700 hover:bg-green-800"}
               >
-                Subir
+                Subir Archivo
+              </Button>
+            </div>
+            <div>
+              <Button
+                onClick={onRefresh}
+                className={"bg-blue-700 hover:bg-blue-800 ml-4"}
+              >
+                Actualizar
               </Button>
             </div>
           </div>
@@ -220,31 +389,36 @@ export default function Page() {
                 justifyContent: "center",
               }}
             >
-              {documents.map((item) => (
-                <div
-                  key={item.id}
-                  style={{
-                    width: "200px",
-                    height: "200px",
-                    backgroundColor: "#fff",
-                    borderRadius: "8px",
-                    padding: "10px",
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                  }}
-                >
-                  <div>
-                  <MemoizedFileCard
+              {getFilteredDocuments().length > 0 ? (
+                getFilteredDocuments().map((item) => (
+                  <div
                     key={item.id}
-                    fileName={item.file_name}
-                    fileType={item.type}
-                    authenticated={item.authenticated}
-                    iconColor={getIconColorByFileType(item.type)}
-                  />
+                    style={{
+                      width: "200px",
+                      height: "200px",
+                      backgroundColor: "#fff",
+                      borderRadius: "8px",
+                      padding: "10px",
+                      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    }}
+                  >
+                    <div>
+                      <MemoizedFileCard
+                        key={item.id}
+                        fileName={item.file_name}
+                        fileType={item.type}
+                        authenticated={item.authenticated}
+                        iconColor={getIconColorByFileType(item.type)}
+                      />
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="col-span-4 text-center py-10">
+                  <FileSearch className="mx-auto w-12 h-12 text-gray-400 mb-3" />
+                  <p className="text-gray-500">No se encontraron documentos con los filtros actuales</p>
                 </div>
-              ))
-              }
-              {/* Ejemplo de FileCard */}
+              )}
             </div>
           </div>
         </div>

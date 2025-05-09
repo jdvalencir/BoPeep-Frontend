@@ -31,9 +31,12 @@ const FileCard = React.memo(
     const [loadingV, setLoadingV] = useState(false);
     const [loading, setLoading] = useState(false);
     const [veri, setVeri] = useState(false);
-    // Add these new state variables
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState(null);
+    
+    // Nuevos estados para los modales de notificación
+    const [showVerifyModal, setShowVerifyModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const getFileIcon = () => {
       if (!fileType) return <File />;
@@ -48,56 +51,112 @@ const FileCard = React.memo(
       return <FileText />;
     };
 
-    const handleVerify = async () => {
-      setLoadingV(true);
-      try {
-        const response = await fetch(`api/authenticate`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", // Asegúrate de incluir las cookies
-          body: JSON.stringify({
-            file_name: fileName,
-            url_document: signedUrl,
-          }),
-        });
+const handleVerify = async () => {
+  // Mostrar el modal de verificación y cerrar el modal principal
+  setIsModalOpen(false);
+  setShowVerifyModal(true);
+  
+  setLoadingV(true);
+  try {
+    const response = await fetch(`api/authenticate`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        file_name: fileName,
+        url_document: signedUrl,
+      }),
+    });
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log("archivo verificado:", data);
-          setVeri(data);
-        }
-      } catch (error) {
-        console.error("Error en la verificación:", error);
-      } finally {
-        setLoadingV(false);
+    if (response.ok) {
+      const data = await response.json();
+      console.log("archivo verificado:", data);
+      setVeri(data);
+    }
+  } catch (error) {
+    console.error("Error en la verificación:", error);
+  } finally {
+    setLoadingV(false);
+    // No llamamos a closeModal() aquí
+  }
+};
+
+const handleDeleteFile = async (e) => {
+  e.stopPropagation();
+
+  // Confirm deletion
+  if (!window.confirm(`¿Estás seguro de que deseas eliminar ${selectedFile}?`)) {
+    return;
+  }
+
+  // Cerrar modal principal primero, luego mostrar notificación
+  setIsModalOpen(false);
+  setShowDeleteModal(true);
+  
+  setDeleteLoading(true);
+  setDeleteError(null);
+
+  try {
+    console.log("Deleting file:", selectedFile);
+    const response = await fetch(`/api/delete`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ file_name: selectedFile }),
+      credentials: "include",
+    });
+
+    console.log("Response:", response);
+
+    if (response.ok) {
+      // Notify parent component about deletion (if callback provided)
+      if (typeof onFileDeleted === "function") {
+        onFileDeleted(fileName);
       }
-    };
+    } else {
+      const errorData = await response.json();
+      setDeleteError(errorData.message || "Error al eliminar el archivo");
+    }
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    setDeleteError("Error de red al intentar eliminar el archivo");
+  } finally {
+    setDeleteLoading(false);
+    // No llamamos a closeModal() aquí
+    
+    // Limpiamos algunos estados
+    setSelectedFile(null);
+    setSignedUrl(null);
+  }
+};
 
     const handleCardClick = async () => {
-      if (isModalOpen) return; // Evita reabrir si ya está abierto
+      // No abrir si ya hay algún modal abierto
+      if (isModalOpen || showVerifyModal || showDeleteModal) return;
 
       setIsModalOpen(true);
       setLoading(true);
       setSelectedFile(fileName);
 
-        try {
-          const response = await fetch(`/api/preview?file_name=${fileName}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          });
+      try {
+        const response = await fetch(`/api/preview?file_name=${fileName}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
 
-          if (response.ok) {
-            const data = await response.json();
-            setSignedUrl(data.signed_url);
-          }
-        } catch (error) {
-          console.error("Error al obtener previsualización:", error);
-        } finally {
-          setLoading(false);
+        if (response.ok) {
+          const data = await response.json();
+          setSignedUrl(data.signed_url);
         }
+      } catch (error) {
+        console.error("Error al obtener previsualización:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     const closeModal = (e) => {
@@ -153,7 +212,7 @@ const FileCard = React.memo(
                       >
                         <path
                           fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 00-1.414 1.414l2 2a1 1 001.414 0l4-4z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -169,7 +228,7 @@ const FileCard = React.memo(
                         >
                           <path
                             fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 101.414 1.414L10 11.414l1.293 1.293a1 1 001.414-1.414L11.414 10l1.293-1.293a1 1 00-1.414-1.414L10 8.586 8.707 7.293z"
                             clipRule="evenodd"
                           />
                         </svg>
@@ -249,50 +308,6 @@ const FileCard = React.memo(
       );
     };
 
-    const handleDeleteFile = async (e) => {
-      e.stopPropagation();
-
-      // Confirm deletion
-      if (!window.confirm(`Are you sure you want to delete ${selectedFile}?`)) {
-        return;
-      }
-
-      setDeleteLoading(true);
-      setDeleteError(null);
-
-      try {
-        console.log("Deleting file:", selectedFile);
-        const response = await fetch(`/api/delete`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ file_name: selectedFile }),
-          credentials: "include", // Include cookies for authentication
-        });
-
-        console.log("Response:", response);
-
-        if (response.ok) {
-          // Close modal
-          setSelectedFile(null);
-          setSignedUrl(null);
-
-          // Notify parent component about deletion (if callback provided)
-          if (typeof onFileDeleted === "function") {
-            onFileDeleted(fileName);
-          }
-        } else {
-          const errorData = await response.json();
-          setDeleteError(errorData.message || "Failed to delete file");
-        }
-      } catch (error) {
-        console.error("Error deleting file:", error);
-        setDeleteError("Network error when trying to delete file");
-      } finally {
-        setDeleteLoading(false);
-      }
-    };
 
     const handleDownloadFile = async () => {
       if (!signedUrl || !selectedFile) return;
@@ -501,10 +516,72 @@ const FileCard = React.memo(
           {fileName}
         </div>
         {isModalOpen && renderModal()}
+        
+        {/* Modal de verificación */}
+        {showVerifyModal && (
+          <NotificationModal
+            title="Verificación en Proceso"
+            message={`Estamos verificando el documento "${fileName}". Te enviaremos un correo electrónico cuando el proceso haya finalizado.`}
+            onClose={() => {
+              setShowVerifyModal(false);
+              // No reabrir el modal principal
+              setIsModalOpen(false);
+            }}
+          />
+        )}
+        
+        {/* Modal de eliminación */}
+        {showDeleteModal && (
+          <NotificationModal
+            title="Eliminación en Proceso"
+            message={`Estamos eliminando el documento "${fileName}". Te enviaremos un correo electrónico de confirmación cuando el proceso haya finalizado.`}
+            onClose={() => {
+              setShowDeleteModal(false);
+              // No reabrir el modal principal
+              setIsModalOpen(false);
+            }}
+          />
+        )}
       </div>
     );
   }
 );
+
+const NotificationModal = ({ title, message, onClose }) => {
+  // Función para manejar el cierre previniendo propagación
+  const handleClose = (e) => {
+    e.stopPropagation(); // Prevenir que el evento llegue al contenedor padre
+    onClose();
+  };
+  
+  // Prevenir que clicks dentro del modal se propaguen
+  const handleContentClick = (e) => {
+    e.stopPropagation();
+  };
+  
+  return (
+    <div 
+      style={styles.notificationModal} 
+      onClick={handleClose} // Cierra al hacer clic fuera del contenido
+    >
+      <div 
+        style={styles.notificationContent} 
+        onClick={handleContentClick} // Previene propagación dentro del contenido
+      >
+        <h3 className="text-xl font-bold mb-4 text-gray-800">{title}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <div className="flex justify-center">
+          <button
+            onClick={handleClose}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
+          >
+            Aceptar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const styles = {
   card: {
@@ -621,6 +698,28 @@ const styles = {
     color: "#ef4444",
     marginTop: "8px",
     fontSize: "14px",
+  },
+  notificationModal: {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1100, // Mayor que el modal principal
+  },
+  notificationContent: {
+    backgroundColor: "white",
+    padding: "20px",
+    borderRadius: "8px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+    textAlign: "center",
+    width: "90%",
+    maxWidth: "450px",
+    animation: "fadeIn 0.3s ease-out",
   },
 };
 
