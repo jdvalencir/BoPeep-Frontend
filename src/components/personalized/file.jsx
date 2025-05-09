@@ -11,6 +11,7 @@ import {
   Unlock,
   File,
   Loader2,
+  Trash2,
 } from "lucide-react";
 
 const FileCard = ({
@@ -18,11 +19,14 @@ const FileCard = ({
   iconColor = "#666",
   fileType = "",
   authenticated = false,
+  onFileDeleted,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [signedUrl, setSignedUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
   const getFileIcon = () => {
     if (!fileType) return <File />;
@@ -77,6 +81,48 @@ const FileCard = ({
     e.stopPropagation();
     setSelectedFile(null);
     setSignedUrl(null);
+  };
+
+  const handleDeleteFile = async (e) => {
+    e.stopPropagation();
+    
+    // Confirm deletion
+    if (!window.confirm(`Are you sure you want to delete ${selectedFile}?`)) {
+      return;
+    }
+    
+    setDeleteLoading(true);
+    setDeleteError(null);
+    
+    try {
+      const response = await fetch(`/api/delete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ file_name: selectedFile }),
+        credentials: "include", // Include cookies for authentication
+      });
+      
+      if (response.ok) {
+        // Close modal
+        setSelectedFile(null);
+        setSignedUrl(null);
+        
+        // Notify parent component about deletion (if callback provided)
+        if (typeof onFileDeleted === 'function') {
+          onFileDeleted(fileName);
+        }
+      } else {
+        const errorData = await response.json();
+        setDeleteError(errorData.message || "Failed to delete file");
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      setDeleteError("Network error when trying to delete file");
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const renderPreview = () => {
@@ -194,6 +240,24 @@ const FileCard = ({
                 <p>Vista previa no disponible para este tipo de archivo</p>
               )}
             </div>
+            
+            <div style={styles.actions}>
+              <button 
+                onClick={handleDeleteFile} 
+                style={styles.deleteButton}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4 mr-2" />
+                )}
+                {deleteLoading ? "Deleting..." : "Delete File"}
+              </button>
+              {deleteError && (
+                <p style={styles.errorMessage}>{deleteError}</p>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -274,6 +338,31 @@ const styles = {
     width: "70%",
     height: "80%",
     overflowY: "auto",
+  },
+  actions: {
+    marginTop: "20px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  deleteButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ef4444",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    padding: "8px 16px",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "bold",
+    transition: "background-color 0.3s",
+  },
+  errorMessage: {
+    color: "#ef4444",
+    marginTop: "8px",
+    fontSize: "14px",
   },
 };
 
