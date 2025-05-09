@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { Button } from "../ui/button";
 import {
   FileText,
   Image,
@@ -27,6 +28,9 @@ const FileCard = ({
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+  const [loadingV, setLoadingV] = useState(false);
+  const [veri, setVeri] = useState(false);
+
 
   const getFileIcon = () => {
     if (!fileType) return <File />;
@@ -50,7 +54,27 @@ const FileCard = ({
         fileType.includes("audio"))
     );
   };
-
+  const handleVerify = async() =>{
+    setLoadingV(true);
+    try {
+      const response = await fetch(`aca va la llamada de la api`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Asegúrate de incluir las cookies
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log("archivo verificado:", data);
+        setVeri(data);
+      }
+    } catch (error) {
+      console.error("Error en la verificación:", error);
+    } finally {
+      setLoadingV(false);
+    }
+  }
   const handleCardClick = async (fileName) => {
     setSelectedFile(fileName);
 
@@ -206,6 +230,7 @@ const FileCard = ({
         )}
       </div>
       <div
+      className="truncate"
         style={{
           ...styles.label,
           backgroundColor: isHovered ? "#dcdcdc" : "#f8f8f8",
@@ -220,25 +245,69 @@ const FileCard = ({
           <button onClick={closeModal} style={styles.closeButton}>
             &times;
           </button>
-          <div style={styles.modalContent}>
-            <h2 style={{ marginBottom: "20px" }}>Detalles del Archivo</h2>
-            <p>
-              <strong>Nombre:</strong> {selectedFile}
-            </p>
-            <p>
-              <strong>Tipo:</strong> {fileType || "No disponible"}
-            </p>
-            <p>
-              <strong>Estado:</strong>{" "}
-              {authenticated ? "Autenticado ✓" : "No autenticado ✗"}
-            </p>
+          <div style={styles.modalContent} className="flex flex-col items-center gap-4 p-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Detalles del Archivo</h2>
+            
+            <div className="w-full bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                <div className="bg-white p-3 rounded shadow-sm">
+                  <p className="text-sm font-medium text-gray-500">Nombre</p>
+                  <p className="text-gray-800 font-semibold truncate">{selectedFile}</p>
+                </div>
+                <div className="bg-white p-3 rounded shadow-sm">
+                  <p className="text-sm font-medium text-gray-500">Tipo</p>
+                  <p className="text-gray-800 font-semibold">{fileType || "No disponible"}</p>
+                </div>
+              </div>
+              
+              <div className="bg-white p-3 rounded shadow-sm">
+                <p className="text-sm font-medium text-gray-500">Estado</p>
+                <p className={`font-semibold ${authenticated ? 'text-green-600' : 'text-red-600'}`}>
+                  {authenticated ? (
+                    <span className="flex items-center gap-1">
+                      <span>Autenticado</span>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                  ) : (
+                    <div className="grid grid-cols-2">
+                      <span className="flex items-center gap-1">
+                        <span>No autenticado</span>
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                      </span>
+                      <span>              
+                        <Button 
+                        type="button"
+                        className={'float-end mr-4 bg-green-700 hover:bg-green-800'}
+                        disabled={loadingV}
+                        >
+                          {loadingV ? "...Verificando" : "verificar"}
+                        </Button>
+                      </span>                      
+                    </div>                                                          
+                  )}
+                </p>
+              </div>
+            </div>
 
-            <div className="w-full mt-4 flex justify-center items-center">
-              {isPreviewable(fileType) ? (
-                renderPreview()
-              ) : (
-                <p>Vista previa no disponible para este tipo de archivo</p>
-              )}
+            <div className="w-full bg-gray-50 rounded-lg p-4 flex flex-col items-center">
+              <h3 className="text-lg font-medium text-gray-700 mb-3">Vista Previa</h3>
+              <div className="w-full min-h-[200px] max-h-[400px] flex items-center justify-center bg-white rounded border border-gray-200 p-4 overflow-auto">
+                {isPreviewable(fileType) ? (
+                  renderPreview()
+                ) : (
+                  <div className="text-center text-gray-500">
+                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="mt-2">Vista previa no disponible</p>
+                    <p className="text-sm">Este tipo de archivo no puede mostrarse</p>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div style={styles.actions}>
@@ -303,8 +372,10 @@ const styles = {
     fontWeight: "bold",
     color: "#333",
     width: "100%",
+    height: "20%",
     textAlign: "center",
     transition: "background-color 0.3s ease",
+
   },
   modal: {
     position: "fixed",
@@ -335,9 +406,10 @@ const styles = {
     borderRadius: "8px",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
     textAlign: "left",
-    width: "70%",
-    height: "80%",
+    width: "90%",
+    height: "90%",
     overflowY: "auto",
+    display: 'flex',
   },
   actions: {
     marginTop: "20px",
