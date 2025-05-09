@@ -45,6 +45,15 @@ export default function Page() {
 
     return "64748b"; // Slate gray default
   };
+  const MemoizedFileCard = React.memo(FileCard, (prevProps, nextProps) => {
+    return (
+      prevProps.fileName === nextProps.fileName &&
+      prevProps.fileType === nextProps.fileType &&
+      prevProps.authenticated === nextProps.authenticated &&
+      prevProps.iconColor === nextProps.iconColor
+    );
+  });
+
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -63,7 +72,6 @@ export default function Page() {
         }
 
         const data = await response.json();
-        console.log("Documentos:", data);
         setDocuments(data.documents);
       } catch (error) {
         setError(error.message);
@@ -224,12 +232,15 @@ export default function Page() {
                     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                   }}
                 >
-                  <FileCard
-                    iconColor={getIconColorByFileType(item.type)}
+                  <div>
+                  <MemoizedFileCard
+                    key={item.id}
                     fileName={item.file_name}
-                    authenticated={item.authenticated}
                     fileType={item.type}
+                    authenticated={item.authenticated}
+                    iconColor={getIconColorByFileType(item.type)}
                   />
+                  </div>
                 </div>
               ))
               }
