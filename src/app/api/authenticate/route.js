@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-export async function POST(req) {
+export async function PUT(req) {
+    console.log("Request:", req);
     const cookies = req.headers.get("cookie") || "";
     const accessToken = cookies
       .split(";")
@@ -11,25 +12,23 @@ export async function POST(req) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
+    const body = await req.json();
+  
     try {
-      // Parse the request body
-      const body = await req.json();
-      console.log("Request body:", body.file_name);
-      
-      const response = await fetch("https://api.marcianos.me/v1/events/documents/deleteFile", {
-        method: "POST", // Add method - important!
+        const response = await fetch(`https://api.marcianos.me/v1/events/documents/authenticateFile`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ file_name: body.file_name }),
+        body: JSON.stringify({ file_name: body.file_name, url_document: body.url_document }),
       });
+
+      console.log("Response:", response);  
   
       const data = await response.json();
-  
       return NextResponse.json(data);
     } catch (err) {
-      console.error("Error deleting file:", err);
-      return NextResponse.json({ error: "Error al borrar un archivo" }, { status: 500 });
+      return NextResponse.json({ error: "Error al obtener el documento" }, { status: 500 });
     }
   }
