@@ -12,7 +12,6 @@ export async function POST(req) {
         }
 
   try {
-    console.log(req)
     const formData = await req.formData();
     const file = formData.get('file');
     
@@ -28,7 +27,7 @@ export async function POST(req) {
     apiFormData.append('file', file);
 
     // Make the API call to the external service
-    const response = await fetch('https://api.marcianos.me/v1/documents/uploadDocument', {
+    const response = await fetch('http://localhost:8000/v1/documents/uploadDocument', {
       headers: {
         'Authorization': `Bearer ${accessToken}`, // Include the access token in the headers
         // 'Content-Type': 'multipart/form-data',
